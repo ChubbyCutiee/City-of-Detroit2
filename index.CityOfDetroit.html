@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Detroit Vector Tile + Popups</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="https://js.arcgis.com/4.28/esri/themes/light/main.css" />
+  <script src="https://js.arcgis.com/4.28/"></script>
+  <style>
+    html, body, #viewDiv {
+      height: 100%; margin: 0; padding: 0;
+    }
+  </style>
+</head>
+<body>
+  <div id="viewDiv"></div>
+
+  <script>
+    require([
+      "esri/Map",
+      "esri/views/MapView",
+      "esri/layers/VectorTileLayer",
+      "esri/layers/FeatureLayer",
+      "esri/widgets/Zoom"
+    ], function(Map, MapView, VectorTileLayer, FeatureLayer, Zoom) {
+
+      // Vector Tile Layer (for fast display)
+      const vectorTileLayer = new VectorTileLayer({
+        url: "https://vectortileservices7.arcgis.com/vn4hKgcJUijbCi2q/arcgis/rest/services/City_of_Detroit/VectorTileServer"
+      });
+
+      // Feature Layer (for popup)
+      const featureLayer = new FeatureLayer({
+        url: "https://services7.arcgis.com/vn4hKgcJUijbCi2q/arcgis/rest/services/City_of_Detroit/FeatureServer/0",
+        outFields: ["*"], // Include all attributes
+        popupEnabled: true,
+        popupTemplate: {
+          title: "Feature Info",
+          content: function (feature) {
+            let content = "<ul>";
+            for (const key in feature.graphic.attributes) {
+              content += `<li><strong>${key}</strong>: ${feature.graphic.attributes[key]}</li>`;
+            }
+            content += "</ul>";
+            return content;
+          }
+        }
+      });
+
+      const map = new Map({
+        basemap: {
+          baseLayers: [vectorTileLayer]
+        },
+        layers: [featureLayer] // overlay for popups
+      });
+
+      const view = new MapView({
+        container: "viewDiv",
+        map: map,
+        center: [-83.0458, 42.3314], // Detroit
+        zoom: 13
+      });
+
+      view.ui.add(new Zoom({ view: view }), "top-left");
+    });
+  </script>
+</body>
+</html>
